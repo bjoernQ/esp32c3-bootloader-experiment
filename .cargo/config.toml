@@ -1,0 +1,14 @@
+[target.riscv32imc-unknown-none-elf]
+runner = "espflash flash --monitor"
+
+[env]
+ESP_LOG="INFO"
+
+[build]
+rustflags = [
+]
+
+target = "riscv32imc-unknown-none-elf"
+
+[unstable]
+build-std = ["core", "compiler_builtins", "panic_abort"]

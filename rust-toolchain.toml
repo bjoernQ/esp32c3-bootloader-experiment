@@ -1,0 +1,5 @@
+[toolchain]
+# use nightly to compile core etc. with more optimizations
+channel    = "nightly"
+components = ["rust-src"]
+targets = ["riscv32imc-unknown-none-elf"]
