@@ -1,14 +1,28 @@
-[target.riscv32imc-unknown-none-elf]
-runner = "espflash flash --monitor"
+[alias]
+xbuild-esp32c2 = "build --features=esp32c2 --target=riscv32imc-unknown-none-elf"
+xbuild-esp32c3 = "build --features=esp32c3 --target=riscv32imc-unknown-none-elf"
+xbuild-esp32c6 = "build --features=esp32c6 --target=riscv32imac-unknown-none-elf"
+xbuild-esp32h2 = "build --features=esp32h2 --target=riscv32imac-unknown-none-elf"
+xbuild-esp32s3 = "build --features=esp32s3 --target=xtensa-esp32s3-none-elf"
 
 [env]
 ESP_LOG="INFO"
 
-[build]
+[target.riscv32imc-unknown-none-elf]
+runner = "espflash flash --monitor"
+
 rustflags = [
 ]
 
-target = "riscv32imc-unknown-none-elf"
+[target.riscv32imac-unknown-none-elf]
+rustflags = [
+]
+
+[target.xtensa-esp32s3-none-elf]
+rustflags = [
+    "-C", "link-arg=-nostartfiles",
+    # "-C", "link-arg=-Wl,-Map=output.map",
+]
 
 [unstable]
 build-std = ["core", "compiler_builtins", "panic_abort"]

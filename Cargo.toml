@@ -3,13 +3,18 @@ edition = "2021"
 name    = "justboot"
 version = "0.1.0"
 
-[[bin]]
-name = "justboot"
-path = "./src/bin/main.rs"
-
 [dependencies]
-esp-hal = { version = "0.23.1", features = ["esp32c3", "unstable"] }
-esp-println = { version = "0.13.0", features = ["esp32c3"] }
+esp-hal = { version = "0.23.1", features = ["unstable"] }
+esp-println = { version = "0.13.0" }
+
+[features]
+esp32c2 = [ "esp-hal/esp32c2", "esp-println/esp32c2" ]
+esp32c3 = [ "esp-hal/esp32c3", "esp-println/esp32c3" ]
+esp32c6 = [ "esp-hal/esp32c6", "esp-println/esp32c6" ]
+esp32h2 = [ "esp-hal/esp32h2", "esp-println/esp32h2" ]
+esp32 = [ "esp-hal/esp32", "esp-println/esp32" ]
+esp32s2 = [ "esp-hal/esp32s2", "esp-println/esp32s2" ]
+esp32s3 = [ "esp-hal/esp32s3", "esp-println/esp32s3" ]
 
 [profile.dev]
 # Rust debug is too slow.
