@@ -4,6 +4,8 @@ xbuild-esp32c3 = "build --features=esp32c3 --target=riscv32imc-unknown-none-elf"
 xbuild-esp32c6 = "build --features=esp32c6 --target=riscv32imac-unknown-none-elf"
 xbuild-esp32h2 = "build --features=esp32h2 --target=riscv32imac-unknown-none-elf"
 xbuild-esp32s3 = "build --features=esp32s3 --target=xtensa-esp32s3-none-elf"
+xbuild-esp32s2 = "build --features=esp32s2 --target=xtensa-esp32s2-none-elf"
+xbuild-esp32 = "build --features=esp32 --target=xtensa-esp32-none-elf"
 
 [env]
 ESP_LOG="INFO"
@@ -19,6 +21,17 @@ rustflags = [
 ]
 
 [target.xtensa-esp32s3-none-elf]
+rustflags = [
+    "-C", "link-arg=-nostartfiles",
+    # "-C", "link-arg=-Wl,-Map=output.map",
+]
+
+[target.xtensa-esp32s2-none-elf]
+rustflags = [
+    "-C", "link-arg=-nostartfiles",
+    # "-C", "link-arg=-Wl,-Map=output.map",
+]
+[target.xtensa-esp32-none-elf]
 rustflags = [
     "-C", "link-arg=-nostartfiles",
     # "-C", "link-arg=-Wl,-Map=output.map",

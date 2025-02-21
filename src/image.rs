@@ -20,10 +20,10 @@ pub struct EspImageHeader {
     pub max_chip_rev_full: u16, // Maximal chip revision supported by image, in format: major * 100 + minor
     pub reserved: [u8; 4],      // Reserved bytes in additional header space, currently unused
     pub hash_appended: u8, // If 1, a SHA256 digest "simple hash" (of the entire image) is appended after the checksum.
-                       // Included in image length. This digest
-                       // is separate to secure boot and only used for detecting corruption.
-                       // For secure boot signed images, the signature
-                       // is appended after this (and the simple hash is included in the signed data).
+                           // Included in image length. This digest
+                           // is separate to secure boot and only used for detecting corruption.
+                           // For secure boot signed images, the signature
+                           // is appended after this (and the simple hash is included in the signed data).
 }
 
 /// Header of binary image segment

@@ -1,9 +1,9 @@
 use esp_println::println;
 
-pub const MMU_ACCESS_FLASH: u32 = 0;
+pub const MMU_ACCESS_FLASH: u32 = 1 << 15;
 
 pub fn init_flash() {
-    let spiconfig = 0;
+    let spiconfig = unsafe { ets_efuse_get_spiconfig() };
 
     pub const FLASH_SIZE: u32 = 0x1000000;
     pub const FLASH_STATUS_MASK: u32 = 0xFFFF;
@@ -50,11 +50,11 @@ pub fn resume_mmu(autoload: u32) {
 }
 
 pub fn is_drom(addr: u32) -> bool {
-    addr >= 0x3C00_0000 && addr <= 0x3C3F_FFFF
+    addr >= 0x3F00_0000 && addr <= 0x3FF7_FFFF
 }
 
 pub fn is_ram(addr: usize) -> bool {
-    !(addr >= 0x3C00_0000 && addr <= 0x3C3F_FFFF || addr >= 0x4200_0000 && addr <= 0x423F_FFFF)
+    !(addr >= 0x3F00_0000 && addr <= 0x3FF7_FFFF || addr >= 0x4008_0000 && addr <= 0x407F_FFFF)
 }
 
 pub fn read_flash(flash_addr: u32, len: usize, data: &mut [u8]) {
@@ -84,6 +84,8 @@ extern "C" {
         page_size: u32,
         status_mask: u32,
     ) -> u32;
+
+    pub fn ets_efuse_get_spiconfig() -> u32;
 
     pub fn esp_rom_spiflash_read(src_addr: u32, data: *mut u8, len: u32) -> i32;
 

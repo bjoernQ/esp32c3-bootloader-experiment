@@ -1,9 +1,9 @@
 use esp_println::println;
 
-pub const MMU_ACCESS_FLASH: u32 = 0;
+pub const MMU_ACCESS_FLASH: u32 = 1 << 15;
 
 pub fn init_flash() {
-    let spiconfig = 0;
+    let spiconfig = unsafe { ets_efuse_get_spiconfig() };
 
     pub const FLASH_SIZE: u32 = 0x1000000;
     pub const FLASH_STATUS_MASK: u32 = 0xFFFF;
@@ -33,28 +33,29 @@ pub fn init_flash() {
 pub fn init_mmu() -> u32 {
     // init mmu
     unsafe {
-        Cache_MMU_Init();
-        Cache_Enable_ICache(1);
+        // Cache_MMU_Init();
+        // Cache_Enable_ICache(1);
 
-        let autoload = Cache_Suspend_ICache();
-        Cache_Invalidate_ICache_All();
+        // let autoload = Cache_Suspend_ICache();
+        // Cache_Invalidate_ICache_All();
 
-        autoload
+        // autoload
+        1
     }
 }
 
 pub fn resume_mmu(autoload: u32) {
     unsafe {
-        Cache_Resume_ICache(autoload);
+        // Cache_Resume_ICache(autoload);
     }
 }
 
 pub fn is_drom(addr: u32) -> bool {
-    addr >= 0x3C00_0000 && addr <= 0x3C3F_FFFF
+    addr >= 0x3F40_0000 && addr <= 0x3FBF_FFFF
 }
 
 pub fn is_ram(addr: usize) -> bool {
-    !(addr >= 0x3C00_0000 && addr <= 0x3C3F_FFFF || addr >= 0x4200_0000 && addr <= 0x423F_FFFF)
+    !(addr >= 0x3F40_0000 && addr <= 0x3FBF_FFFF || addr >= 0x400C_2000 && addr <= 0x40BF_FFFF)
 }
 
 pub fn read_flash(flash_addr: u32, len: usize, data: &mut [u8]) {
@@ -64,12 +65,12 @@ pub fn read_flash(flash_addr: u32, len: usize, data: &mut [u8]) {
     }
 }
 
-pub fn dbus_mmu_set(vaddr: u32, paddr: u32, psize: u32, num: u32, fixed: u32) -> i32 {
-    unsafe { Cache_Dbus_MMU_Set(MMU_ACCESS_FLASH, vaddr, paddr, psize, num, fixed) }
+pub fn dbus_mmu_set(ext_ram: u32, vaddr: u32, paddr: u32, psize: u32, num: u32, fixed: u32) -> i32 {
+    // unsafe { Cache_Dbus_MMU_Set(ext_ram, vaddr, paddr, psize, num, fixed) }
 }
 
-pub fn ibus_mmu_set(vaddr: u32, paddr: u32, psize: u32, num: u32, fixed: u32) -> i32 {
-    unsafe { Cache_Ibus_MMU_Set(MMU_ACCESS_FLASH, vaddr, paddr, psize, num, fixed) }
+pub fn ibus_mmu_set(ext_ram: u32, vaddr: u32, paddr: u32, psize: u32, num: u32, fixed: u32) -> i32 {
+    // unsafe { Cache_Ibus_MMU_Set(ext_ram, vaddr, paddr, psize, num, fixed) }
 }
 
 extern "C" {
@@ -85,11 +86,16 @@ extern "C" {
         status_mask: u32,
     ) -> u32;
 
+    pub fn ets_efuse_get_spiconfig() -> u32;
+
     pub fn esp_rom_spiflash_read(src_addr: u32, data: *mut u8, len: u32) -> i32;
 
     // mmu functions
+    // not ESP32
     pub fn Cache_Suspend_ICache() -> u32;
+    // not ESP32
     pub fn Cache_Resume_ICache(val: u32);
+    // not ESP32
     pub fn Cache_Invalidate_ICache_All();
     pub fn Cache_Ibus_MMU_Set(
         ext_ram: u32,
@@ -109,7 +115,9 @@ extern "C" {
         fixed: u32,
     ) -> i32;
 
+    // not ESP32
     pub fn Cache_MMU_Init();
 
+    // not ESP32
     pub fn Cache_Enable_ICache(autoload: u32);
 }

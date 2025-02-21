@@ -4,38 +4,25 @@
 mod chip;
 mod image;
 
+pub(crate) use chip::*;
 use esp_hal::main;
 use esp_println::println;
-pub(crate) use chip::*;
 pub(crate) use image::*;
 
 #[panic_handler]
 fn panic<'a, 'b>(_pi: &'a core::panic::PanicInfo<'b>) -> ! {
-    println!("💀");
+    println!("💀{:?}", _pi);
     loop {}
 }
 
 #[main]
 fn main() -> ! {
     esp_hal::init(esp_hal::Config::default());
-    println!("I'm just a humble bootloader 🦀\n");   
+    println!("I'm just a humble bootloader 🦀\n");
 
     init_flash();
 
-    // init mmu
-    let autoload = unsafe {
-        Cache_MMU_Init();
-        Cache_Enable_ICache(1);
-
-        #[cfg(not(feature = "esp32s3"))]
-        let autoload = Cache_Suspend_ICache();
-        #[cfg(feature = "esp32s3")]
-        let autoload = rom_Cache_Suspend_ICache();
-
-        Cache_Invalidate_ICache_All();
-
-        autoload
-    };
+    let autoload = init_mmu();
 
     let image_offset = 0x10_000;
 
@@ -72,7 +59,10 @@ fn main() -> ! {
             println!("skip");
         } else {
             if is_ram(load_addr) {
-                println!("Copying to RAM from {:x}", flash_addr + core::mem::size_of::<EspImageSegmentHeader>() as u32);
+                println!(
+                    "Copying to RAM from {:x}",
+                    flash_addr + core::mem::size_of::<EspImageSegmentHeader>() as u32
+                );
                 let dst = load_addr as *mut u8;
                 read_flash(
                     flash_addr + core::mem::size_of::<EspImageSegmentHeader>() as u32,
@@ -91,9 +81,9 @@ fn main() -> ! {
                 println!("vaddr: {:x}, paddr: {:x}, blocks: {}", vaddr, paddr, blocks);
 
                 let res = if is_drom(vaddr) {
-                    dbus_mmu_set(0, vaddr, paddr, 64, blocks, 0)
+                    dbus_mmu_set(vaddr, paddr, 64, blocks, 0)
                 } else {
-                    ibus_mmu_set(0, vaddr, paddr, 64, blocks, 0)
+                    ibus_mmu_set(vaddr, paddr, 64, blocks, 0)
                 };
 
                 if res != 0 {
@@ -104,9 +94,7 @@ fn main() -> ! {
         flash_addr += core::mem::size_of::<EspImageSegmentHeader>() as u32 + data_len as u32;
     }
 
-    unsafe {
-        Cache_Resume_ICache(autoload);
-    }
+    resume_mmu(autoload);
 
     // jump to entry
     let entry: extern "C" fn() -> ! = unsafe { core::mem::transmute(entry_addr) };
