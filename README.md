@@ -28,3 +28,6 @@ Just for booting esp-hal baremetal. esp-idf images won't work (for now).
 
 - ESP32-S2
     - something simple works, clocks are off after trying to change CPU clock, clocks (e.g. timers) slower than assumed
+
+- ESP32
+    - like ESP32-S2
