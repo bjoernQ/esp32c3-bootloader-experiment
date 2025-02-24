@@ -65,12 +65,14 @@ pub fn read_flash(flash_addr: u32, len: usize, data: &mut [u8]) {
     }
 }
 
-pub fn dbus_mmu_set(ext_ram: u32, vaddr: u32, paddr: u32, psize: u32, num: u32, fixed: u32) -> i32 {
+pub fn dbus_mmu_set(vaddr: u32, paddr: u32, psize: u32, num: u32, fixed: u32) -> i32 {
     // unsafe { Cache_Dbus_MMU_Set(ext_ram, vaddr, paddr, psize, num, fixed) }
+    0
 }
 
-pub fn ibus_mmu_set(ext_ram: u32, vaddr: u32, paddr: u32, psize: u32, num: u32, fixed: u32) -> i32 {
+pub fn ibus_mmu_set(vaddr: u32, paddr: u32, psize: u32, num: u32, fixed: u32) -> i32 {
     // unsafe { Cache_Ibus_MMU_Set(ext_ram, vaddr, paddr, psize, num, fixed) }
+    0
 }
 
 extern "C" {
