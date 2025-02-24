@@ -12,16 +12,19 @@ esptool --chip=esp32XXX elf2image  target\riscv32imc-unknown-none-elf\release\ju
 Just for booting esp-hal baremetal. esp-idf images won't work (for now).
 
 - ESP32-C3
-    - works fine, even a wifi example works
+    - works fine so far
 
 - added ESP32-C2
     - works so far for, wifi etc. only on chips with a 40MHz xtal
 
 - added ESP32-C6
-    - works fine so far (need s.th. in esp-hal)
+    - works fine so far
 
 - added ESP32-H2
-    - works fine so far (need s.th. in esp-hal)
+    - works fine so far
 
 - ESP32-S3
-    - works fine, even a wifi example works
+    - works fine so far
+
+- ESP32-S2
+    - something simple works, clocks are off after trying to change CPU clock, clocks (e.g. timers) slower than assumed

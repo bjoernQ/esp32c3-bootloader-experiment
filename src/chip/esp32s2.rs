@@ -3,6 +3,17 @@ use esp_println::println;
 pub const MMU_ACCESS_FLASH: u32 = 1 << 15;
 
 pub fn init_flash() {
+    // super-wdt-autofeed ... doesn't belong here - have a dedicated init function
+    const DR_REG_RTCCNTL_BASE: usize = 0x3f408000;
+    const RTC_CNTL_SWD_CONF_REG: usize = (DR_REG_RTCCNTL_BASE + 0x00B0);
+    const RTC_CNTL_SWD_AUTO_FEED_EN: u32 = 1 << 31;
+
+    unsafe {
+        let ptr = RTC_CNTL_SWD_CONF_REG as *mut u32;
+        ptr.write_volatile(ptr.read_volatile() | RTC_CNTL_SWD_AUTO_FEED_EN);
+    }
+
+    // actually init flash
     let spiconfig = unsafe { ets_efuse_get_spiconfig() };
 
     pub const FLASH_SIZE: u32 = 0x1000000;
@@ -34,18 +45,41 @@ pub fn init_mmu() -> u32 {
     // init mmu
     unsafe {
         Cache_MMU_Init();
-        Cache_Enable_ICache(1);
+        // Cache_Enable_ICache(1);
 
-        let autoload = Cache_Suspend_ICache();
-        Cache_Invalidate_ICache_All();
+        // let autoload = Cache_Suspend_ICache();
+        // Cache_Invalidate_ICache_All();
 
-        autoload
+        Cache_Disable_ICache();
+        Cache_Disable_DCache();
+
+        1
     }
 }
 
 pub fn resume_mmu(autoload: u32) {
     unsafe {
-        Cache_Resume_ICache(autoload);
+        // enable bus
+        const DR_REG_EXTMEM_BASE: u32 = 0x61800000;
+        const EXTMEM_PRO_DCACHE_CTRL1_REG: u32 = DR_REG_EXTMEM_BASE + 0x004;
+        const EXTMEM_PRO_ICACHE_CTRL1_REG: u32 = DR_REG_EXTMEM_BASE + 0x044;
+
+        (EXTMEM_PRO_DCACHE_CTRL1_REG as *mut u32).write_volatile(
+            0b010, /*((EXTMEM_PRO_DCACHE_CTRL1_REG as *mut u32).read_volatile() & !0b101)*/
+        );
+        (EXTMEM_PRO_ICACHE_CTRL1_REG as *mut u32).write_volatile(
+            0b010, /*((EXTMEM_PRO_ICACHE_CTRL1_REG as *mut u32).read_volatile() & !0b101)*/
+        );
+        // also need for APP cpu
+
+        Cache_Resume_ICache(1);
+        Cache_Resume_DCache(1);
+
+        Cache_Invalidate_ICache_All();
+        Cache_Invalidate_DCache_All();
+
+        Cache_Enable_DCache(1);
+        Cache_Enable_ICache(1);
     }
 }
 
@@ -65,7 +99,8 @@ pub fn read_flash(flash_addr: u32, len: usize, data: &mut [u8]) {
 }
 
 pub fn dbus_mmu_set(vaddr: u32, paddr: u32, psize: u32, num: u32, fixed: u32) -> i32 {
-    unsafe { Cache_Dbus_MMU_Set(MMU_ACCESS_FLASH, vaddr, paddr, psize, num, fixed) }
+    // dbus doesn't seem to work for the used addr ranges?????
+    unsafe { Cache_Ibus_MMU_Set(MMU_ACCESS_FLASH, vaddr, paddr, psize, num, fixed) }
 }
 
 pub fn ibus_mmu_set(vaddr: u32, paddr: u32, psize: u32, num: u32, fixed: u32) -> i32 {
@@ -91,8 +126,14 @@ extern "C" {
 
     // mmu functions
     pub fn Cache_Suspend_ICache() -> u32;
+    pub fn Cache_Suspend_DCache() -> u32;
+
     pub fn Cache_Resume_ICache(val: u32);
+    pub fn Cache_Resume_DCache(val: u32);
+
     pub fn Cache_Invalidate_ICache_All();
+    pub fn Cache_Invalidate_DCache_All();
+
     pub fn Cache_Ibus_MMU_Set(
         ext_ram: u32,
         vaddr: u32,
@@ -114,4 +155,10 @@ extern "C" {
     pub fn Cache_MMU_Init();
 
     pub fn Cache_Enable_ICache(autoload: u32);
+
+    pub fn Cache_Enable_DCache(autoload: u32);
+
+    pub fn Cache_Disable_ICache();
+
+    pub fn Cache_Disable_DCache();
 }
